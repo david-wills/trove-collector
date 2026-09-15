@@ -167,8 +167,8 @@ impl Vault {
     }
 
     /// Every record of one day file, in file order (tests).
-    #[cfg(test)]
     /// Missing file = empty; unparseable lines are skipped.
+    #[cfg(test)]
     pub fn read_day_jsonl<T: DeserializeOwned>(&self, dir: &str, day: &str) -> Result<Vec<T>> {
         let rel = format!("{dir}/{day}.jsonl");
         let path = self.resolve(&rel)?;
