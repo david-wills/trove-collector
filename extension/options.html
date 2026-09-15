@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Trove Browser Watcher — options</title>
+  <style>
+    body {
+      font: 14px/1.5 -apple-system, system-ui, sans-serif;
+      color: #1d1d1f;
+      max-width: 560px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    h1 { font-size: 1.2rem; }
+    p.muted { color: #6e6e73; }
+    section {
+      border: 1px solid #d2d2d7;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+    }
+    label { display: flex; gap: 0.5rem; align-items: baseline; font-weight: 600; }
+    label + p { margin: 0.25rem 0 0 1.6rem; color: #6e6e73; }
+    fieldset {
+      border: none;
+      margin: 1rem 0 0;
+      padding: 0.75rem 0 0 1rem;
+      border-top: 1px solid #e8e8ed;
+    }
+    fieldset:disabled { opacity: 0.5; }
+    #status { margin: 0.75rem 0 0 1.6rem; font-size: 0.85rem; color: #6e6e73; }
+    #status.granted { color: #1a7f37; }
+  </style>
+</head>
+<body>
+  <h1>Trove Browser Watcher</h1>
+  <p class="muted">
+    The watcher itself never reads page content — it only sees tab URLs and
+    titles, and everything stays on this machine. Page observation below is a
+    separate, off-by-default collector that does read pages, gated by
+    Chrome's own permission prompt.
+  </p>
+
+  <section>
+    <label>
+      <input type="checkbox" id="master" />
+      Page observation
+    </label>
+    <p>
+      Allows the extension to see page content on all sites. Off: the
+      extension cannot read any page. Chrome's per-site controls
+      (chrome://extensions → details → site access) still apply on top —
+      e.g. exclude specific sites entirely.
+    </p>
+    <div id="status"></div>
+
+    <fieldset id="features">
+      <label>
+        <input type="checkbox" id="ads" />
+        Ad observation
+      </label>
+      <p>
+        Records which ads are shown to you (network, advertiser, landing
+        link) and how long each was on screen. Never blocks ads, never
+        captures page text.
+      </p>
+    </fieldset>
+  </section>
+
+  <script src="options.js"></script>
+</body>
+</html>

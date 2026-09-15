@@ -1,0 +1,68 @@
+<!doctype html>
+<!--
+  Manual smoke fixture for the ad detector (docs/page-observer-spec.md
+  §Testing). Serve over http — content scripts don't run on file:// unless
+  that's separately allowed:
+
+      python3 -m http.server -d extension/test/fixtures 8901
+      open http://localhost:8901/ads.html
+
+  With page observation + ad observation enabled, expect three records in
+  ~/Documents/Trove/browser/ads/$(date +%F).jsonl after closing the tab:
+
+  1. "doubleclick" — src-domain detection; in view immediately, so
+     viewable:true and viewed_secs ≈ time the tab was open and visible.
+  2. "slot-named srcdoc" — slot detection (google_ads_iframe_ prefix, no
+     src): network falls back to "google", no frame_url/advertiser.
+  3. "below the fold" — detected at load but viewable:false / viewed_secs:0
+     until you scroll it ≥50% into view for ≥1s.
+
+  Also try: switching tabs mid-view (the clock must pause), scrolling the
+  third ad in and out quickly (<1s stays viewable:false), and the
+  late-added ad (appears after 3s — the debounced MutationObserver must
+  pick it up).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Trove ad-detector fixture</title>
+  <style>
+    body { font: 16px/1.5 sans-serif; max-width: 720px; margin: 2rem auto; }
+    iframe { border: 2px dashed #c00; display: block; margin: 1rem 0; }
+    .spacer { height: 150vh; background: linear-gradient(#eee, #fff); }
+  </style>
+</head>
+<body>
+  <h1>Trove ad-detector fixture</h1>
+  <p>Three fake ads below (red dashed). None loads a real creative — detection
+     is attribute-based, so a failed iframe load still counts.</p>
+
+  <!-- 1: src-domain detection (signal 1). The request will 404/fail; fine. -->
+  <h2>doubleclick (src domain)</h2>
+  <iframe src="https://googleads.g.doubleclick.net/pagead/fake-fixture"
+          width="300" height="250" title="fixture ad 1"></iframe>
+
+  <!-- 2: slot-named srcdoc frame (signal 2) — no src domain to match. -->
+  <h2>slot-named srcdoc</h2>
+  <iframe id="google_ads_iframe_/123/fixture_0" srcdoc="<body style='background:#fc6'>srcdoc ad</body>"
+          width="728" height="90" title="fixture ad 2"></iframe>
+
+  <div class="spacer">scroll down for the below-the-fold ad ↓</div>
+
+  <!-- 3: below the fold — accrues viewed time only once scrolled into view. -->
+  <h2>below the fold</h2>
+  <iframe src="https://tpc.googlesyndication.com/safeframe/fake-fixture"
+          width="300" height="600" title="fixture ad 3"></iframe>
+
+  <script>
+    // 4: late-added ad, 3s after load — exercises the debounced
+    // childList MutationObserver path.
+    setTimeout(() => {
+      const f = document.createElement('iframe');
+      f.src = 'https://cdn.taboola.com/fake-fixture';
+      f.width = 300; f.height = 250; f.title = 'fixture ad 4 (late)';
+      document.body.prepend(f);
+    }, 3000);
+  </script>
+</body>
+</html>

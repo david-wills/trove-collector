@@ -1,0 +1,32 @@
+[package]
+name = "trove-collector"
+version = "0.1.0"
+edition = "2021"
+authors = ["David Wills"]
+license = "MIT"
+description = "Always-on activity collector for a Trove vault: app/window activity, browser tabs via the Chrome extension, and Apple Music plays"
+repository = "https://github.com/david-wills/trove-collector"
+
+[[bin]]
+name = "trove-collector"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+chrono = "0.4"
+dirs = "5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# The one networked path (opt-in advertiser identity lookup). Pure Rust TLS.
+ureq = { version = "2.12", features = ["json"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.10"
+objc2 = "0.6"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[profile.release]
+strip = true
+lto = "thin"

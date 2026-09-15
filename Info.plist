@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Embedded into the trove-collector binary as a __TEXT,__info_plist section
+  (see build.rs). A bare binary is its own TCC "responsible process"; the
+  bundle identifier is what System Settings → Screen Recording keys the
+  grant to, and the usage string is what the prompt shows.
+-->
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>com.davidwills.trove-collector</string>
+	<key>CFBundleName</key>
+	<string>trove-collector</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>trove-collector reads the frontmost window's title to record what you were working on. Nothing is captured or sent anywhere; it is written to your local Trove vault.</string>
+</dict>
+</plist>

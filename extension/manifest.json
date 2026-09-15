@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Trove Browser Watcher",
+  "version": "0.2.0",
+  "description": "Reports tab URL, title, favicon, audio playback, and navigation referrer to the local Trove vault via troved. Local-only — no network access, no remote code. Optional, off-by-default page observation (ad tracking) behind Chrome's own permission prompt.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt/ktcWcX9sV0JPOuJ9H8h69szQgZbVM9eQmcw8dltT7vXOpPG0ZzGj3umd6An9jfgi9Xdk+KN4/c0k5SQZJzdHnDVYFU0kcpAhBmxqfJBeCRdmAHNvMWkw0/LXRf/E2mKoyBOqe+OI/Ym4uGhX89bLnsKIvHE/EEKd4sKyFjmbw0gFxadtDp8mjb9rf5N2HvkJFjcD4s7CEW+HOsWs0WOm5oyc2cAEas8GTypCIqeQ/UG3m0BWh4oe/DMcAb36mRFwsRTPZIlDkYN8THbzsBrHt6NnK8LTNu0X+wtV2Qlk2vRlZ7YBYa54P3gIA/dAh/FUgFz0am10344vwV3f3S+QIDAQAB",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["tabs", "nativeMessaging", "alarms", "webNavigation", "scripting", "storage"],
+  "optional_host_permissions": ["<all_urls>"],
+  "options_page": "options.html"
+}
