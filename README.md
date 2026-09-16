@@ -17,9 +17,11 @@ Why a separate program: these streams need a 24/7 process, Screen Recording perm
 
 ```bash
 scripts/build.sh                  # build, sign with your Apple Development cert, install + start the launch agent
-target/release/trove-collector permission   # prompt for Screen Recording (window titles; app names work without it)
+target/release/trove-collector permission   # opens the Screen Recording pane; enable trove-collector there, then restart it (window titles; app names work without it)
 target/release/trove-collector status
 ```
+
+Screen Recording is keyed to the *responsible process*, so a grant requested from a terminal lands on the terminal. The launchd-run collector asks for it itself on startup, which lists it in System Settings → Privacy & Security → Screen Recording; enable it there and restart the agent (`launchctl kickstart -k gui/$(id -u)/com.davidwills.trove-collector`).
 
 Signing matters: macOS ties the Screen Recording grant to the binary's signature, and an ad-hoc-signed build changes on every rebuild. `scripts/build.sh` signs with a stable identity so you grant once. Without a cert, plain `cargo build --release` works, but you re-grant after every build.
 

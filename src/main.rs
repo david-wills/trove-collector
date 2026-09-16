@@ -15,7 +15,7 @@
 //!                                and the Chrome native messaging host manifest
 //!   trove-collector uninstall    stop and remove the launch agent
 //!   trove-collector status       installed? running? memory? which streams are on?
-//!   trove-collector permission   prompt for Screen Recording (window titles)
+//!   trove-collector permission   open the Screen Recording pane + how to enable it (window titles)
 //!
 //! Chrome also spawns this binary as the extension's native messaging host,
 //! passing the extension origin as the first argument — `main` dispatches
@@ -58,11 +58,22 @@ fn main() {
         "uninstall" => launchd::uninstall(),
         "status" => vault_root(&args[1..]).and_then(launchd::status),
         "permission" => {
-            let granted = sampler::request_screen_recording();
+            // Screen Recording is granted per *responsible process*: a request
+            // made from a terminal-launched command is attributed to the
+            // terminal, not to this binary. The launchd-run collector requests
+            // access itself at startup, which registers it in the list; this
+            // command only opens the pane and says what to enable.
             println!(
-                "screen recording: {}",
-                if granted { "granted" } else { "not granted — System Settings → Privacy & Security → Screen Recording" }
+                "Screen Recording is granted to the running collector, not to this terminal command.\n\
+                 The launch agent already asked for it on its last start, so the collector is listed:\n\
+                 System Settings → Privacy & Security → Screen Recording → enable trove-collector,\n\
+                 then: launchctl kickstart -k gui/$(id -u)/{}\n\
+                 (if it is not listed, run `trove-collector install` to start it under launchd first)",
+                launchd::LABEL
             );
+            let _ = std::process::Command::new("open")
+                .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")
+                .status();
             Ok(())
         }
         "help" | "--help" | "-h" => {
@@ -90,7 +101,7 @@ fn print_help() {
                       also registers the Chrome native messaging host\n\
          uninstall    stop the agent and remove the plist + host manifest\n\
          status       show install/running/memory state and stream toggles\n\
-         permission   prompt for Screen Recording (needed for window titles)\n\n\
+         permission   open the Screen Recording pane + how to enable it (window titles)\n\n\
          The vault is ~/Documents/Trove unless --vault or TROVE_VAULT says otherwise."
     );
 }
@@ -119,9 +130,17 @@ fn run(args: &[String]) -> Result<()> {
     let root = vault_root(args)?;
     println!("trove-collector: watching vault at {} (pid {})", root.display(), std::process::id());
     if !sampler::screen_recording_ok() {
+        // Ask from this process: TCC keys the grant to the responsible
+        // process, so only a request made here (under launchd) lists the
+        // collector itself in the Screen Recording pane. The call returns at
+        // once; the user flips the toggle and restarts the agent.
+        sampler::request_screen_recording();
         println!(
             "trove-collector: Screen Recording not granted for this binary — other apps' window \
-             titles will be empty (app-level tracking works regardless). Run `trove-collector permission`."
+             titles will be empty (app-level tracking works regardless). Enable trove-collector in \
+             System Settings → Privacy & Security → Screen Recording, then `launchctl kickstart -k \
+             gui/$(id -u)/{}`.",
+            launchd::LABEL
         );
     }
 
