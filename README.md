@@ -9,7 +9,7 @@ The always-on collector for a [Trove](https://github.com/david-wills/trove) vaul
 | `browser/ads/YYYY-MM-DD.jsonl` | display ads seen, with network, size, and on-screen time (extension opt-in) | same |
 | `music/plays/YYYY-MM-DD.jsonl` | every Apple Music play as it happens, skips included | `com.apple.Music.playerInfo` notifications |
 
-It follows the [vault spec](https://github.com/david-wills/trove/tree/main/docs/vault-spec) and has **no dependency on the Trove app or its crates**. It is the reference case for the spec's central claim: any program can write to a vault by following the file conventions. The app reads these streams, shows them, and owns the on/off toggles; this binary just writes.
+It follows the [vault spec](https://github.com/david-wills/trove/tree/main/docs/vault-spec) — the three streams it owns are specced at [`domains/activity.md`](https://github.com/david-wills/trove/blob/main/docs/vault-spec/domains/activity.md), [`domains/browser-visits.md`](https://github.com/david-wills/trove/blob/main/docs/vault-spec/domains/browser-visits.md), and [`domains/ads.md`](https://github.com/david-wills/trove/blob/main/docs/vault-spec/domains/ads.md); plays follow [`domains/media-plays.md`](https://github.com/david-wills/trove/blob/main/docs/vault-spec/domains/media-plays.md) — and it has **no dependency on the Trove app or its crates**. It is the reference case for the spec's central claim: any program can write to a vault by following the file conventions. The app reads these streams, shows them, and owns the on/off toggles; this binary just writes.
 
 Why a separate program: these streams need a 24/7 process, Screen Recording permission, and a native-messaging host. Nothing else in Trove does. Keeping them here keeps the app a plain document-style app, and keeps this process small enough to audit: it is a few thousand lines and its memory is logged every ten minutes.
 
@@ -30,7 +30,7 @@ Logs: `~/Library/Logs/trove/trove-collector.log` and `.err.log`. Stop and remove
 ## How it fits with the app
 
 - **Toggles** live in the app's Integrations hub and are written to `.trove/integrations.json`. The collector re-reads that file every poll, so a switch in the app takes effect within seconds. Ids: `activity`, `music-scrobbler`, `browser-extension`, `browser-ads`, and the default-off `browser-ads-identify`.
-- **Status** is a heartbeat at `.trove/watcher-state.json` (pid, last tick, the in-progress activity event, resident memory). The app reads it to show "collector running" and the live "what am I doing now" line. Cleared on clean exit; stale after a crash.
+- **Status** is a heartbeat at `.trove/watcher-state.json` (pid, last tick, the in-progress activity event, resident memory). The app reads it (Integrations → Trove Collector, and the Activity tab) to show "collector running", the memory figure, and the live "what am I doing now" line. Cleared on clean exit; stale after a crash.
 - **Single writer.** One collector per vault, enforced with an advisory lock at `.trove/watcher.lock`. A second instance waits.
 - **Concurrent writers on `browser/`.** The app's history import and one native host per Chrome profile all append to the same day files, so those appends take a per-file flock. Lines never interleave.
 - **The one network call.** `browser-ads-identify`, off by default, fetches Google's ad-transparency page for an observed ad to name who paid for it. Nothing else in this binary touches the network.
@@ -56,6 +56,10 @@ extension/          the Chrome extension (MV3, no network permission)
 ```
 
 Every writer has a byte-parity test against the exact line shape the app's reader expects.
+
+## Regenerating the ad-domain list
+
+`extension/observer/ad-domains.js` is a compiled-in allowlist of ad-serving domains. `node scripts/gen-ad-domains.mjs` rebuilds it from the public lists it cites; that script is the only thing in this repo that touches the network, and it runs on your machine, never in the extension.
 
 ## License
 
